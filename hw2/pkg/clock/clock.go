@@ -8,12 +8,14 @@ type Clock interface {
 	Now() time.Time
 }
 
-type realClock struct{}
-
-func NewRealClock() Clock {
-	return &realClock{}
+type staticClock struct {
+	now time.Time
 }
 
-func (clock *realClock) Now() time.Time {
-	return time.Now()
+func NewStaticClock(fixedTime time.Time) Clock {
+	return &staticClock{now: fixedTime}
+}
+
+func (clock *staticClock) Now() time.Time {
+	return clock.now
 }

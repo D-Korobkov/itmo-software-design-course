@@ -1,14 +1,15 @@
 package app
 
 import (
-	"github.com/D-Korobkov/itmo-software-design-course/hw2/internal/pkg/github"
+	"errors"
+	"github.com/D-Korobkov/itmo-software-design-course/hw2/internal/pkg/integration/github"
 	"github.com/D-Korobkov/itmo-software-design-course/hw2/pkg/clock"
 	"github.com/D-Korobkov/itmo-software-design-course/hw2/pkg/gmath"
 	"time"
 )
 
 type GithubStatisticsCollector interface {
-	CountRecentlyCreatedRepositories(topic string, periodHours int) ([]int, error)
+	CountRecentlyCreatedRepositories(topic github.Topic, periodHours int) ([]int, error)
 }
 
 type collectorImpl struct {
@@ -23,7 +24,11 @@ func NewGithubStatisticsCollector(finder github.RepositoryFinder, clock clock.Cl
 	}
 }
 
-func (collector *collectorImpl) CountRecentlyCreatedRepositories(topic string, periodHours int) ([]int, error) {
+func (collector *collectorImpl) CountRecentlyCreatedRepositories(topic github.Topic, periodHours int) ([]int, error) {
+	if periodHours < 1 || periodHours > 24 {
+		return nil, errors.New("`periodHours` must be between 1 and 24")
+	}
+
 	now := collector.clock.Now()
 	nHoursAgo := now.Add(-time.Duration(periodHours) * time.Hour)
 
@@ -34,12 +39,8 @@ func (collector *collectorImpl) CountRecentlyCreatedRepositories(topic string, p
 	}
 
 	statistics := make([]int, periodHours)
-	var searchedRepositoriesCount uint
-	for page := uint(1); ; page++ {
-		repositoriesPerPage := gmath.Min(
-			github.DefaultRepositoriesPerPage,
-			github.MaxSearchedRepositoriesNumber-searchedRepositoriesCount,
-		)
+	for alreadyFetchedRepos, page := 0, 1; ; page++ {
+		repositoriesPerPage := gmath.Min(github.DefaultReposPerPage, github.MaxFetchedRepos-alreadyFetchedRepos)
 		repositories, err := collector.finder.SearchRepositories(request, repositoriesPerPage, page)
 		if err != nil {
 			return nil, err
@@ -56,8 +57,8 @@ func (collector *collectorImpl) CountRecentlyCreatedRepositories(topic string, p
 			}
 		}
 
-		searchedRepositoriesCount += uint(len(repositories.Items))
-		if searchedRepositoriesCount == gmath.Min(repositories.TotalCount, github.MaxSearchedRepositoriesNumber) {
+		alreadyFetchedRepos += len(repositories.Items)
+		if alreadyFetchedRepos == gmath.Min(repositories.TotalCount, github.MaxFetchedRepos) {
 			break
 		}
 	}

@@ -34,7 +34,7 @@ func (m *MockRepositoryFinder) EXPECT() *MockRepositoryFinderMockRecorder {
 }
 
 // SearchRepositories mocks base method.
-func (m *MockRepositoryFinder) SearchRepositories(arg0 SearchRepositoriesRequest, arg1, arg2 uint) (*SearchRepositoriesResponse, error) {
+func (m *MockRepositoryFinder) SearchRepositories(arg0 SearchRepositoriesRequest, arg1, arg2 int) (*SearchRepositoriesResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchRepositories", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*SearchRepositoriesResponse)

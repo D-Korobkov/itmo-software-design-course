@@ -2,7 +2,7 @@ package app_test
 
 import (
 	"github.com/D-Korobkov/itmo-software-design-course/hw2/internal/app"
-	"github.com/D-Korobkov/itmo-software-design-course/hw2/internal/pkg/github"
+	"github.com/D-Korobkov/itmo-software-design-course/hw2/internal/pkg/integration/github"
 	"github.com/D-Korobkov/itmo-software-design-course/hw2/pkg/clock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -12,7 +12,7 @@ import (
 
 type CommonData struct {
 	Now                       time.Time
-	Topic                     string
+	Topic                     github.Topic
 	PeriodHours               int
 	SearchRepositoriesRequest github.SearchRepositoriesRequest
 }
@@ -24,7 +24,7 @@ type Mocks struct {
 
 func setupTest(t *testing.T) (CommonData, Mocks, func()) {
 	now := time.Date(2022, 10, 2, 16, 0, 0, 0, clock.Msk)
-	topic := "test"
+	topic := github.Topic("test")
 	periodHours := 3
 	commonData := CommonData{
 		Now:         now,
@@ -59,8 +59,8 @@ func TestNoRepositoriesWithTheGivenTopic(t *testing.T) {
 	mocks.Clock.EXPECT().Now().Return(commonData.Now).AnyTimes()
 	mocks.Finder.EXPECT().SearchRepositories(request, gomock.Any(), gomock.Any()).Return(&response, nil)
 
-	ghCrawler := app.NewGithubStatisticsCollector(mocks.Finder, mocks.Clock)
-	stats, err := ghCrawler.CountRecentlyCreatedRepositories(commonData.Topic, commonData.PeriodHours)
+	collector := app.NewGithubStatisticsCollector(mocks.Finder, mocks.Clock)
+	stats, err := collector.CountRecentlyCreatedRepositories(commonData.Topic, commonData.PeriodHours)
 	assert.Nil(t, err)
 
 	expectedStats := []int{0, 0, 0}
@@ -85,8 +85,8 @@ func TestRepositoriesWithTheGivenTopicAreOnTheSinglePage(t *testing.T) {
 	mocks.Clock.EXPECT().Now().Return(commonData.Now).AnyTimes()
 	mocks.Finder.EXPECT().SearchRepositories(request, gomock.Any(), gomock.Any()).Return(&response, nil)
 
-	ghCrawler := app.NewGithubStatisticsCollector(mocks.Finder, mocks.Clock)
-	stats, err := ghCrawler.CountRecentlyCreatedRepositories(commonData.Topic, commonData.PeriodHours)
+	collector := app.NewGithubStatisticsCollector(mocks.Finder, mocks.Clock)
+	stats, err := collector.CountRecentlyCreatedRepositories(commonData.Topic, commonData.PeriodHours)
 	assert.Nil(t, err)
 
 	expectedStats := []int{0, 1, 0}
@@ -111,8 +111,8 @@ func TestRepositoryCreatedAtEqToCreatedTillParam(t *testing.T) {
 	mocks.Clock.EXPECT().Now().Return(commonData.Now).AnyTimes()
 	mocks.Finder.EXPECT().SearchRepositories(request, gomock.Any(), gomock.Any()).Return(&response, nil)
 
-	ghCrawler := app.NewGithubStatisticsCollector(mocks.Finder, mocks.Clock)
-	stats, err := ghCrawler.CountRecentlyCreatedRepositories(commonData.Topic, commonData.PeriodHours)
+	collector := app.NewGithubStatisticsCollector(mocks.Finder, mocks.Clock)
+	stats, err := collector.CountRecentlyCreatedRepositories(commonData.Topic, commonData.PeriodHours)
 	assert.Nil(t, err)
 
 	expectedStats := []int{1, 0, 0}
@@ -137,8 +137,8 @@ func TestRepositoryCreatedAtEqToCreatedSinceParam(t *testing.T) {
 	mocks.Clock.EXPECT().Now().Return(commonData.Now).AnyTimes()
 	mocks.Finder.EXPECT().SearchRepositories(request, gomock.Any(), gomock.Any()).Return(&response, nil)
 
-	ghCrawler := app.NewGithubStatisticsCollector(mocks.Finder, mocks.Clock)
-	stats, err := ghCrawler.CountRecentlyCreatedRepositories(commonData.Topic, commonData.PeriodHours)
+	collector := app.NewGithubStatisticsCollector(mocks.Finder, mocks.Clock)
+	stats, err := collector.CountRecentlyCreatedRepositories(commonData.Topic, commonData.PeriodHours)
 	assert.Nil(t, err)
 
 	expectedStats := []int{0, 0, 1}
@@ -151,7 +151,7 @@ func TestRepositoriesWithTheGivenTopicAreOnTheDifferentPages(t *testing.T) {
 
 	request := commonData.SearchRepositoriesRequest
 
-	fstPage := uint(1)
+	fstPage := 1
 	responseFstPage := github.SearchRepositoriesResponse{
 		TotalCount: 3,
 		Items: []github.SearchRepositoriesResponseItem{
@@ -162,7 +162,7 @@ func TestRepositoriesWithTheGivenTopicAreOnTheDifferentPages(t *testing.T) {
 		},
 	}
 
-	sndPage := uint(2)
+	sndPage := 2
 	responseSndPage := github.SearchRepositoriesResponse{
 		TotalCount: 3,
 		Items: []github.SearchRepositoriesResponseItem{
@@ -173,7 +173,7 @@ func TestRepositoriesWithTheGivenTopicAreOnTheDifferentPages(t *testing.T) {
 		},
 	}
 
-	thdPage := uint(3)
+	thdPage := 3
 	responseThdPage := github.SearchRepositoriesResponse{
 		TotalCount: 3,
 		Items: []github.SearchRepositoriesResponseItem{
@@ -189,8 +189,8 @@ func TestRepositoriesWithTheGivenTopicAreOnTheDifferentPages(t *testing.T) {
 	mocks.Finder.EXPECT().SearchRepositories(request, gomock.Any(), sndPage).Return(&responseSndPage, nil)
 	mocks.Finder.EXPECT().SearchRepositories(request, gomock.Any(), thdPage).Return(&responseThdPage, nil)
 
-	ghCrawler := app.NewGithubStatisticsCollector(mocks.Finder, mocks.Clock)
-	stats, err := ghCrawler.CountRecentlyCreatedRepositories(commonData.Topic, commonData.PeriodHours)
+	collector := app.NewGithubStatisticsCollector(mocks.Finder, mocks.Clock)
+	stats, err := collector.CountRecentlyCreatedRepositories(commonData.Topic, commonData.PeriodHours)
 	assert.Nil(t, err)
 
 	expectedStats := []int{1, 1, 1}

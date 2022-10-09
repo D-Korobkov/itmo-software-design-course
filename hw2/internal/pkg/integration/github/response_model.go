@@ -3,7 +3,7 @@ package github
 import "time"
 
 type SearchRepositoriesResponse struct {
-	TotalCount uint                             `json:"total_count"`
+	TotalCount int                              `json:"total_count"`
 	Items      []SearchRepositoriesResponseItem `json:"items"`
 }
 

@@ -6,12 +6,12 @@ import (
 )
 
 type SearchRepositoriesRequest struct {
-	Topic        string
+	Topic        Topic
 	CreatedSince time.Time
 	CreatedTill  time.Time
 }
 
-func (request SearchRepositoriesRequest) ToRawQuery(repositoriesPerPage uint, page uint) string {
+func (request SearchRepositoriesRequest) ToRawQuery(repositoriesPerPage int, page int) string {
 	searchQuery := fmt.Sprintf("topic:%s+created:%s..%s",
 		request.Topic,
 		request.CreatedSince.UTC().Format(time.RFC3339),

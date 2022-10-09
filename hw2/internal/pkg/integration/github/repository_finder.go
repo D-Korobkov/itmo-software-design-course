@@ -11,13 +11,8 @@ import (
 	"net/url"
 )
 
-const (
-	DefaultRepositoriesPerPage    = uint(30)
-	MaxSearchedRepositoriesNumber = uint(1000)
-)
-
 type RepositoryFinder interface {
-	SearchRepositories(request SearchRepositoriesRequest, repositoriesPerPage uint, page uint) (*SearchRepositoriesResponse, error)
+	SearchRepositories(request SearchRepositoriesRequest, repositoriesPerPage int, page int) (*SearchRepositoriesResponse, error)
 }
 
 type repositoryFinderImpl struct {
@@ -40,7 +35,11 @@ func NewRepositoryFinder(config ApiConfig, httpClient *http.Client) (RepositoryF
 	return &finder, nil
 }
 
-func (finder *repositoryFinderImpl) SearchRepositories(searchRequest SearchRepositoriesRequest, repositoriesPerPage uint, page uint) (*SearchRepositoriesResponse, error) {
+func (finder *repositoryFinderImpl) SearchRepositories(searchRequest SearchRepositoriesRequest, repositoriesPerPage int, page int) (*SearchRepositoriesResponse, error) {
+	if repositoriesPerPage < 0 || page < 0 {
+		return nil, errors.New("parameters for pagination cannot be negative")
+	}
+
 	requestUrl := finder.baseUrl.JoinPath("search", "repositories")
 	requestUrl.RawQuery = searchRequest.ToRawQuery(repositoriesPerPage, page)
 

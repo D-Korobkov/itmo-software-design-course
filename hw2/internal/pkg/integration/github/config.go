@@ -1,6 +1,6 @@
 package github
 
 type ApiConfig struct {
-	BaseUrl   string
-	AuthToken string
+	BaseUrl   string `yaml:"base-url"`
+	AuthToken string `yaml:"auth-token"`
 }

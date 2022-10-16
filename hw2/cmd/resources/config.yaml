@@ -1,0 +1,7 @@
+test-run:
+  topic: api
+  period-hours: 24
+
+github-api:
+  base-url: https://api.github.com
+  auth-token: ${GITHUB_AUTH_TOKEN}

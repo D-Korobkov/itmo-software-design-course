@@ -57,7 +57,7 @@ func TestNoRepositoriesWithTheGivenTopic(t *testing.T) {
 	response := github.SearchRepositoriesResponse{TotalCount: 0}
 
 	mocks.Clock.EXPECT().Now().Return(commonData.Now).AnyTimes()
-	mocks.Finder.EXPECT().SearchRepositories(request, gomock.Any(), gomock.Any()).Return(&response, nil)
+	mocks.Finder.EXPECT().SearchRepositories(request, gomock.Any()).Return(&response, nil)
 
 	collector := app.NewGithubStatisticsCollector(mocks.Finder, mocks.Clock)
 	stats, err := collector.CountRecentlyCreatedRepositories(commonData.Topic, commonData.PeriodHours)
@@ -83,7 +83,7 @@ func TestRepositoriesWithTheGivenTopicAreOnTheSinglePage(t *testing.T) {
 	}
 
 	mocks.Clock.EXPECT().Now().Return(commonData.Now).AnyTimes()
-	mocks.Finder.EXPECT().SearchRepositories(request, gomock.Any(), gomock.Any()).Return(&response, nil)
+	mocks.Finder.EXPECT().SearchRepositories(request, gomock.Any()).Return(&response, nil)
 
 	collector := app.NewGithubStatisticsCollector(mocks.Finder, mocks.Clock)
 	stats, err := collector.CountRecentlyCreatedRepositories(commonData.Topic, commonData.PeriodHours)
@@ -109,7 +109,7 @@ func TestRepositoryCreatedAtEqToCreatedTillParam(t *testing.T) {
 	}
 
 	mocks.Clock.EXPECT().Now().Return(commonData.Now).AnyTimes()
-	mocks.Finder.EXPECT().SearchRepositories(request, gomock.Any(), gomock.Any()).Return(&response, nil)
+	mocks.Finder.EXPECT().SearchRepositories(request, gomock.Any()).Return(&response, nil)
 
 	collector := app.NewGithubStatisticsCollector(mocks.Finder, mocks.Clock)
 	stats, err := collector.CountRecentlyCreatedRepositories(commonData.Topic, commonData.PeriodHours)
@@ -135,7 +135,7 @@ func TestRepositoryCreatedAtEqToCreatedSinceParam(t *testing.T) {
 	}
 
 	mocks.Clock.EXPECT().Now().Return(commonData.Now).AnyTimes()
-	mocks.Finder.EXPECT().SearchRepositories(request, gomock.Any(), gomock.Any()).Return(&response, nil)
+	mocks.Finder.EXPECT().SearchRepositories(request, gomock.Any()).Return(&response, nil)
 
 	collector := app.NewGithubStatisticsCollector(mocks.Finder, mocks.Clock)
 	stats, err := collector.CountRecentlyCreatedRepositories(commonData.Topic, commonData.PeriodHours)
@@ -185,9 +185,9 @@ func TestRepositoriesWithTheGivenTopicAreOnTheDifferentPages(t *testing.T) {
 	}
 
 	mocks.Clock.EXPECT().Now().Return(commonData.Now).AnyTimes()
-	mocks.Finder.EXPECT().SearchRepositories(request, gomock.Any(), fstPage).Return(&responseFstPage, nil)
-	mocks.Finder.EXPECT().SearchRepositories(request, gomock.Any(), sndPage).Return(&responseSndPage, nil)
-	mocks.Finder.EXPECT().SearchRepositories(request, gomock.Any(), thdPage).Return(&responseThdPage, nil)
+	mocks.Finder.EXPECT().SearchRepositories(request, fstPage).Return(&responseFstPage, nil)
+	mocks.Finder.EXPECT().SearchRepositories(request, sndPage).Return(&responseSndPage, nil)
+	mocks.Finder.EXPECT().SearchRepositories(request, thdPage).Return(&responseThdPage, nil)
 
 	collector := app.NewGithubStatisticsCollector(mocks.Finder, mocks.Clock)
 	stats, err := collector.CountRecentlyCreatedRepositories(commonData.Topic, commonData.PeriodHours)

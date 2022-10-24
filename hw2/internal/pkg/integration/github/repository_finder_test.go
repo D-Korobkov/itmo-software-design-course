@@ -30,7 +30,7 @@ func TestErrorResponseProcessing(t *testing.T) {
 	finder, err := github2.NewRepositoryFinder(apiConfig, client)
 	assert.Nil(t, err)
 
-	resp, err := finder.SearchRepositories(github2.SearchRepositoriesRequest{}, 1, 1)
+	resp, err := finder.SearchRepositories(github2.SearchRepositoriesRequest{}, 1)
 	assert.Nil(t, resp)
 
 	expectedErrString := "boom"
@@ -57,7 +57,7 @@ func TestSuccessResponseProcessing(t *testing.T) {
 	finder, err := github2.NewRepositoryFinder(apiConfig, client)
 	assert.Nil(t, err)
 
-	resp, err := finder.SearchRepositories(github2.SearchRepositoriesRequest{}, 1, 1)
+	resp, err := finder.SearchRepositories(github2.SearchRepositoriesRequest{}, 1)
 	assert.Nil(t, err)
 
 	expectedResponse := github2.SearchRepositoriesResponse{

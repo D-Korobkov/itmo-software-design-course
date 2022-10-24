@@ -40,8 +40,7 @@ func (collector *collectorImpl) CountRecentlyCreatedRepositories(topic github.To
 
 	statistics := make([]int, periodHours)
 	for alreadyFetchedRepos, page := 0, 1; ; page++ {
-		repositoriesPerPage := gmath.Min(github.DefaultReposPerPage, github.MaxFetchedRepos-alreadyFetchedRepos)
-		repositories, err := collector.finder.SearchRepositories(request, repositoriesPerPage, page)
+		repositories, err := collector.finder.SearchRepositories(request, page)
 		if err != nil {
 			return nil, err
 		}

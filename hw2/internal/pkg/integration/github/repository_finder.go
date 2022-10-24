@@ -1,6 +1,6 @@
 package github
 
-//go:generate mockgen -destination mocks.go -package github github.com/D-Korobkov/itmo-software-design-course/hw2/internal/pkg/github RepositoryFinder
+//go:generate mockgen -destination mocks.go -package github github.com/D-Korobkov/itmo-software-design-course/hw2/internal/pkg/integration/github RepositoryFinder
 
 import (
 	"encoding/json"
@@ -12,7 +12,7 @@ import (
 )
 
 type RepositoryFinder interface {
-	SearchRepositories(request SearchRepositoriesRequest, repositoriesPerPage int, page int) (*SearchRepositoriesResponse, error)
+	SearchRepositories(request SearchRepositoriesRequest, page int) (*SearchRepositoriesResponse, error)
 }
 
 type repositoryFinderImpl struct {
@@ -35,13 +35,13 @@ func NewRepositoryFinder(config ApiConfig, httpClient *http.Client) (RepositoryF
 	return &finder, nil
 }
 
-func (finder *repositoryFinderImpl) SearchRepositories(searchRequest SearchRepositoriesRequest, repositoriesPerPage int, page int) (*SearchRepositoriesResponse, error) {
-	if repositoriesPerPage < 0 || page < 0 {
-		return nil, errors.New("parameters for pagination cannot be negative")
+func (finder *repositoryFinderImpl) SearchRepositories(searchRequest SearchRepositoriesRequest, page int) (*SearchRepositoriesResponse, error) {
+	if page < 0 {
+		return nil, errors.New("number of page cannot be negative")
 	}
 
 	requestUrl := finder.baseUrl.JoinPath("search", "repositories")
-	requestUrl.RawQuery = searchRequest.ToRawQuery(repositoriesPerPage, page)
+	requestUrl.RawQuery = searchRequest.ToRawQuery(DefaultReposPerPage, page)
 
 	request, err := http.NewRequest(http.MethodGet, requestUrl.String(), nil)
 	if err != nil {

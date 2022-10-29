@@ -34,7 +34,7 @@ public class AddProductServletTest {
 
         verify(request, times(1)).getParameter("name");
         verify(request, times(1)).getParameter("price");
-        verify(productStorage, times(1)).insert(refEq(product));
+        verify(productStorage, times(1)).insert(product);
         verify(response, times(1)).setContentType("text/html");
         verify(response, times(1)).setStatus(HttpServletResponse.SC_OK);
     }

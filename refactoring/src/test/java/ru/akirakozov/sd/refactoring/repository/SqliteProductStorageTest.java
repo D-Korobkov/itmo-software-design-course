@@ -1,13 +1,15 @@
 package ru.akirakozov.sd.refactoring.repository;
 
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import ru.akirakozov.sd.refactoring.model.Product;
-import ru.akirakozov.sd.refactoring.servlet.AddProductServlet;
 
 import java.sql.*;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -33,6 +35,32 @@ public class SqliteProductStorageTest {
         } finally {
             driverManagerMockedStatic.close();
         }
+    }
+
+    @Test
+    public void testGetAll() throws Exception {
+        Product fstProduct = new Product("Xbox", 666);
+        Product sndProduct = new Product("IPhone", 444);
+
+        Statement statement = mock(Statement.class);
+        ResultSet resultSet = mock(ResultSet.class);
+
+        when(connection.createStatement()).thenReturn(statement);
+        when(statement.executeQuery(anyString())).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        when(resultSet.getString(anyString())).thenReturn(fstProduct.getName()).thenReturn(sndProduct.getName());
+        when(resultSet.getLong(anyString())).thenReturn(fstProduct.getPrice()).thenReturn(sndProduct.getPrice());
+
+        List<Product> allProducts = new SqliteProductStorage("test").getAll();
+
+        List<Product> expectedAllProducts = Arrays.asList(fstProduct, sndProduct);
+        Assertions.assertEquals(expectedAllProducts, allProducts);
+
+        verify(connection, times(1)).createStatement();
+        verify(statement, times(1)).executeQuery("SELECT NAME, PRICE FROM PRODUCT");
+        verify(resultSet, times(3)).next();
+        verify(resultSet, times(2)).getString("name");
+        verify(resultSet, times(2)).getLong("price");
     }
 
     @Test

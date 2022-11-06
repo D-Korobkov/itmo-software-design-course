@@ -1,14 +1,22 @@
 package ru.akirakozov.sd.refactoring.servlet;
 
+import ru.akirakozov.sd.refactoring.api.HtmlBuilder;
+import ru.akirakozov.sd.refactoring.api.HttpResponse;
 import ru.akirakozov.sd.refactoring.model.Product;
 import ru.akirakozov.sd.refactoring.repository.ProductStorage;
+import ru.akirakozov.sd.refactoring.servlet.query.Command;
+import ru.akirakozov.sd.refactoring.servlet.query.KnownCommand;
+import ru.akirakozov.sd.refactoring.servlet.query.UnknownCommand;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Optional;
+
+import static ru.akirakozov.sd.refactoring.api.HtmlBuilder.*;
 
 /**
  * @author akirakozov
@@ -22,63 +30,46 @@ public class QueryServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        PrintWriter responseWriter = response.getWriter();
-        String command = request.getParameter("command");
-
-        if ("max".equals(command)) {
-            try {
-                Optional<Product> productOpt = productStorage.getTheMostExpensiveProduct();
-
-                responseWriter.println("<html><body>");
-                responseWriter.println("<h1>Product with max price: </h1>");
-                productOpt.ifPresent(product ->
-                    responseWriter.println(product.getName() + "\t" + product.getPrice() + "</br>")
-                );
-                responseWriter.println("</body></html>");
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        } else if ("min".equals(command)) {
-            try {
-                Optional<Product> productOpt = productStorage.getTheCheapestProduct();
-
-                responseWriter.println("<html><body>");
-                responseWriter.println("<h1>Product with min price: </h1>");
-                productOpt.ifPresent(product ->
-                    responseWriter.println(product.getName() + "\t" + product.getPrice() + "</br>")
-                );
-                responseWriter.println("</body></html>");
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        } else if ("sum".equals(command)) {
-            try {
-                int summaryPrice = productStorage.sumProductPrices();
-
-                responseWriter.println("<html><body>");
-                responseWriter.println("Summary price: ");
-                responseWriter.println(summaryPrice);
-                responseWriter.println("</body></html>");
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        } else if ("count".equals(command)) {
-            try {
-                int numberOfProducts = productStorage.countProducts();
-
-                responseWriter.println("<html><body>");
-                responseWriter.println("Number of products: ");
-                responseWriter.println(numberOfProducts);
-                responseWriter.println("</body></html>");
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            responseWriter.println("Unknown command: " + command);
+        Command command = Command.fromString(request.getParameter("command"));
+        if (command instanceof UnknownCommand) {
+            UnknownCommand unknownCommand = (UnknownCommand) command;
+            HttpResponse.okHtml(response, unknownCommand.toHtml());
+            return;
         }
 
-        response.setContentType("text/html");
-        response.setStatus(HttpServletResponse.SC_OK);
+        HtmlBuilder[] htmlBodyItems;
+        try {
+            htmlBodyItems = executeKnownCommand((KnownCommand) command);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        HtmlBuilder htmlBody = Arrays.stream(htmlBodyItems).reduce(HtmlBuilder::concat).orElse(HtmlBuilder.empty());
+        HttpResponse.okHtml(response, htmlBody);
+    }
+
+    private HtmlBuilder[] executeKnownCommand(KnownCommand command) throws SQLException {
+        switch (command) {
+            case max:
+                return mapOptionalProduct("Product with max price: ", productStorage.getTheMostExpensiveProduct());
+            case min:
+                return mapOptionalProduct("Product with min price: ", productStorage.getTheCheapestProduct());
+            case sum:
+                return mapNumber("Summary price: ", productStorage.sumProductPrices());
+            case count:
+                return mapNumber("Number of products: ", productStorage.countProducts());
+            default:
+                throw new RuntimeException(String.format("Cannot execute the known command '%s'", command));
+        }
+    }
+
+    private HtmlBuilder[] mapOptionalProduct(String title, Optional<Product> productOpt) {
+        HtmlBuilder bodyItem = productOpt.map(DomainMapper::toHtmlBodyItem).orElse(HtmlBuilder.empty());
+        return new HtmlBuilder[]{h1(raw(title)), newline(), bodyItem};
+    }
+
+    private HtmlBuilder[] mapNumber(String title, int number) {
+        return new HtmlBuilder[]{raw(title), newline(), raw(String.valueOf(number)), newline()};
     }
 
 }

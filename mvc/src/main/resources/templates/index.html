@@ -1,0 +1,35 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<body>
+
+<h3>To-do list</h3>
+<form method="GET" action="/todo-list">
+    <label for="atDate">Choose date</label>
+    <input id="atDate" type="date" th:name="atDate" required>
+    <input type="submit">
+</form>
+
+<ul>
+    <li th:each="item : ${todoList.getItems()}">
+        <div style="display: inline-flex">
+            <form method="POST"
+                  th:action="@{/todo-list/item/{id}/switch-is-done-flag(id=${item.getId()},atDate=${todoList.getAtDate()})}">
+                <label th:text="${item.getDescription()}"></label>
+                <input type="checkbox" th:checked="${item.isDone()}" onchange="this.form.submit()">
+            </form>
+            <form method="POST"
+                  th:action="@{/todo-list/item/{id}/remove(id=${item.id},atDate=${todoList.getAtDate()})}">
+                <button>удалить</button>
+            </form>
+        </div>
+    </li>
+    <li>
+        <form method="POST" th:action="@{/todo-list/item/new(atDate=${todoList.getAtDate()})}"
+              th:object="${todoListItem}">
+            <input class="new-todo" placeholder="Пополните список дел" th:field="*{description}">
+        </form>
+    </li>
+</ul>
+
+</body>
+</html>

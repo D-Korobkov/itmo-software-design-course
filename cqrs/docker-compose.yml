@@ -1,0 +1,94 @@
+version: '3.9'
+
+services:
+  fitness-center-db:
+    image: postgres:14
+    environment:
+      - POSTGRES_DB=fitness_center
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin_123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql
+      - ./event-store/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - cqrs
+
+  admin:
+    build:
+      dockerfile: .docker/app.Dockerfile
+      context: ./
+      args:
+        SERVICE_NAME: admin
+    environment:
+      - HTTP_BIND=8000
+      - POSTGRES_DB=fitness_center
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin_123
+      - HOST_DB=fitness-center-db
+      - PORT_DB=5432
+    depends_on:
+      - fitness-center-db
+    volumes:
+      - ./admin:/app/admin:delegated
+      - ./.docker/entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: /entrypoint.sh
+    ports:
+      - "8000:8000"
+    networks:
+      - cqrs
+
+  turnstile:
+    build:
+      dockerfile: .docker/app.Dockerfile
+      context: ./
+      args:
+        SERVICE_NAME: turnstile
+    environment:
+      - HTTP_BIND=8001
+      - POSTGRES_DB=fitness_center
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin_123
+      - HOST_DB=fitness-center-db
+      - PORT_DB=5432
+    depends_on:
+      - fitness-center-db
+    volumes:
+      - ./turnstile:/app/turnstile:delegated
+      - ./.docker/entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: /entrypoint.sh
+    ports:
+      - "8001:8001"
+    networks:
+      - cqrs
+
+  report:
+    build:
+      dockerfile: .docker/app.Dockerfile
+      context: ./
+      args:
+        SERVICE_NAME: report
+    environment:
+      - HTTP_BIND=8002
+      - POSTGRES_DB=fitness_center
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin_123
+      - HOST_DB=fitness-center-db
+      - PORT_DB=5432
+    depends_on:
+      - fitness-center-db
+    volumes:
+      - ./report:/app/report:delegated
+      - ./.docker/entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: /entrypoint.sh
+    ports:
+      - "8002:8002"
+    networks:
+      - cqrs
+
+volumes:
+  pg_data:
+
+networks:
+  cqrs:

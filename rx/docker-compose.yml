@@ -1,0 +1,19 @@
+version: '3.7'
+services:
+  database:
+    image: mongo:4.4.6
+    container_name : rx-mongodb
+    command: mongod --auth
+    environment:
+      - MONGO_INITDB_DATABASE=rxdb
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=root
+    ports:
+      - '27017-27019:27017-27019'
+    volumes:
+      - mongodbdata:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+
+volumes:
+  mongodbdata:
+    driver: local

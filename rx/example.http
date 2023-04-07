@@ -1,0 +1,27 @@
+POST http://localhost:8080/user?login=killreal000&currency=USD
+
+###
+POST http://localhost:8080/user?login=kukarek&currency=RUB
+
+###
+POST http://localhost:8080/user?login=cheburek&currency=EUR
+
+###
+
+POST http://localhost:8080/good?name=IPhone&priceRub=80000
+
+###
+POST http://localhost:8080/good?name=PlayStation5&priceRub=60000
+
+###
+POST http://localhost:8080/good?name=Pirozhochek&priceRub=20
+
+###
+
+GET http://localhost:8080/price-list?userLogin=kukarek
+
+###
+GET http://localhost:8080/price-list?userLogin=killreal000
+
+###
+GET http://localhost:8080/price-list?userLogin=cheburek
